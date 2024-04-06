@@ -1,0 +1,6 @@
+@ShopAPI_ASP.NET_Core_HostAddress = http://localhost:5217
+
+GET {{ShopAPI_ASP.NET_Core_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
