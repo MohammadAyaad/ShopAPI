@@ -7,6 +7,7 @@ using System.Reflection.Metadata;
 using ShopAPI.Model.Packages;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using ShopAPI_ASP.NET_Core.Model.Users;
 
 namespace ShopAPI.Data
 {
@@ -45,6 +46,7 @@ namespace ShopAPI.Data
         public DbSet<Package> Packages { get; set; }
         public DbSet<PackageContent> PackageContent { get; set; }
         public DbSet<PackageRating> PackageRatings { get; set; }
+        public DbSet<JwtAccessTable> JwtAccessTables { get; set; }
 
     }
 }
