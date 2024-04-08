@@ -5,12 +5,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShopAPI.Authorization;
 using ShopAPI.Data;
 using ShopAPI.Model.Products;
+using ShopAPI.Authorization;
+using static ShopAPI.Model.Moderation.Permissions;
+using static ShopAPI.Model.Moderation.UserRoles;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
+using ShopAPI.Model.TokenComponents;
 
 namespace ShopAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductVariantsController : ControllerBase
     {
@@ -20,34 +26,18 @@ namespace ShopAPI.Controllers
         {
             _context = context;
         }
-
-        // GET: api/ProductVariants
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductVariant>>> GetProductVariants()
-        {
-            return await _context.ProductVariants.ToListAsync();
-        }
-
-        // GET: api/ProductVariants/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ProductVariant>> GetProductVariant(int id)
-        {
-            var productVariant = await _context.ProductVariants.FindAsync(id);
-
-            if (productVariant == null)
-            {
-                return NotFound();
-            }
-
-            return productVariant;
-        }
-
         // PUT: api/ProductVariants/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProductVariant(int id, ProductVariant productVariant)
+        [HttpPut("{productId}/variant/{variantId}")]
+        public async Task<IActionResult> PutProductVariant([FromHeader(Name = "Authorization")] string authorization, int productId, int variantId, ProductVariant productVariant)
         {
-            if (id != productVariant.Id)
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, EDIT_PRODUCTS);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            if (variantId != productVariant.Id || productId != productVariant.ProductId)
             {
                 return BadRequest();
             }
@@ -60,7 +50,7 @@ namespace ShopAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductVariantExists(id))
+                if (!ProductVariantExists(variantId))
                 {
                     return NotFound();
                 }
@@ -75,9 +65,15 @@ namespace ShopAPI.Controllers
 
         // POST: api/ProductVariants
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ProductVariant>> PostProductVariant(ProductVariant productVariant)
+        [HttpPost("{productId}/variants/add")]
+        public async Task<ActionResult<ProductVariant>> PostProductVariant([FromHeader(Name = "Authorization")] string authorization, ProductVariant productVariant)
         {
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, EDIT_PRODUCTS);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
             _context.ProductVariants.Add(productVariant);
             await _context.SaveChangesAsync();
 
@@ -85,10 +81,16 @@ namespace ShopAPI.Controllers
         }
 
         // DELETE: api/ProductVariants/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProductVariant(int id)
+        [HttpDelete("{productId}/variants/delete/{variantId}")]
+        public async Task<IActionResult> DeleteProductVariant([FromHeader(Name = "Authorization")] string authorization,int productId, int variantId)
         {
-            var productVariant = await _context.ProductVariants.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, EDIT_PRODUCTS);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var productVariant = _context.ProductVariants.FirstOrDefault(v => v.ProductId == productId && v.Id == variantId);
             if (productVariant == null)
             {
                 return NotFound();

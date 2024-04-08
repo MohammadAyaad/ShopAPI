@@ -2,15 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShopAPI.Authorization;
 using ShopAPI.Data;
 using ShopAPI.Model.Packages;
+using ShopAPI.Model.Products;
+using ShopAPI.Model.TokenComponents;
+using ShopAPI.Authorization;
+using static ShopAPI.Model.Moderation.Permissions;
+using static ShopAPI.Model.Moderation.UserRoles;
+using System.Net;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
+using ShopAPI.Model.TokenComponents;
 
 namespace ShopAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/package")]
     [ApiController]
     public class PackageRatingsController : ControllerBase
     {
@@ -21,18 +31,17 @@ namespace ShopAPI.Controllers
             _context = context;
         }
 
-        // GET: api/PackageRatings
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PackageRating>>> GetPackageRatings()
+        // GET: api/ProductRatings/5
+        [HttpGet("{packageId}/ratings")]
+        public async Task<ActionResult<IEnumerable<PackageRating>>> GetPackageRatings([FromHeader(Name = "Authorization")] string authorization, int packageId)
         {
-            return await _context.PackageRatings.ToListAsync();
-        }
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES);
 
-        // GET: api/PackageRatings/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PackageRating>> GetPackageRating(Guid id)
-        {
-            var packageRating = await _context.PackageRatings.FindAsync(id);
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var packageRating = _context.PackageRatings.Where(r => r.PackageId == packageId).ToList();
 
             if (packageRating == null)
             {
@@ -42,53 +51,36 @@ namespace ShopAPI.Controllers
             return packageRating;
         }
 
-        // PUT: api/PackageRatings/5
+        
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPackageRating(Guid id, PackageRating packageRating)
+        [HttpPost("{packageId}/rate")]
+        public async Task<ActionResult<PackageRating>> PostPackageRating([FromHeader(Name = "Authorization")] string authorization,int packageId, PackageRating packageRating)
         {
-            if (id != packageRating.Id)
-            {
-                return BadRequest();
-            }
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | REVIEW_PACKAGES );
 
-            _context.Entry(packageRating).State = EntityState.Modified;
+            (JCST userToken, string email, AccessToken access) = result.Value;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PackageRatingExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (userToken == null) return result.Result;
 
-            return NoContent();
-        }
+            if (packageId != packageRating.PackageId) return Conflict();
 
-        // POST: api/PackageRatings
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<PackageRating>> PostPackageRating(PackageRating packageRating)
-        {
             _context.PackageRatings.Add(packageRating);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetPackageRating", new { id = packageRating.Id }, packageRating);
         }
 
-        // DELETE: api/PackageRatings/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePackageRating(Guid id)
+        // DELETE: api/ProductRatings/5
+        [HttpDelete("{packageId}/rating")]
+        public async Task<IActionResult> DeletePackageRating([FromHeader(Name = "Authorization")] string authorization,int packageId)
         {
-            var packageRating = await _context.PackageRatings.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | REVIEW_PACKAGES);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var packageRating = _context.PackageRatings.Where(r => r.PackageId == packageId && r.RaterEmail == email).First();
             if (packageRating == null)
             {
                 return NotFound();
@@ -99,6 +91,8 @@ namespace ShopAPI.Controllers
 
             return NoContent();
         }
+
+
 
         private bool PackageRatingExists(Guid id)
         {

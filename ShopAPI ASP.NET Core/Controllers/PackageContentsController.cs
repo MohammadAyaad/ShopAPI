@@ -2,15 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShopAPI.Authorization;
 using ShopAPI.Data;
 using ShopAPI.Model.Packages;
+using ShopAPI.Model.Products;
+using ShopAPI.Model.TokenComponents;
+using ShopAPI.Authorization;
+using static ShopAPI.Model.Moderation.Permissions;
+using static ShopAPI.Model.Moderation.UserRoles;
+using System.Net;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
+using ShopAPI.Model.TokenComponents;
 
 namespace ShopAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/package")]
     [ApiController]
     public class PackageContentsController : ControllerBase
     {
@@ -21,63 +31,38 @@ namespace ShopAPI.Controllers
             _context = context;
         }
 
-        // GET: api/PackageContents
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PackageContent>>> GetPackageContent()
-        {
-            return await _context.PackageContent.ToListAsync();
-        }
-
         // GET: api/PackageContents/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PackageContent>> GetPackageContent(int id)
+        [HttpGet("{packageId}/content")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetPackageContent([FromHeader(Name = "Authorization")] string authorization,int packageId)
         {
-            var packageContent = await _context.PackageContent.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES);
 
-            if (packageContent == null)
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var packageContents =  _context.PackageContent.Where(c => c.PackageId == packageId);
+
+            var packageProducts = _context.Products.Where(p => packageContents.Any(c => c.ProductId == p.Id)).ToList();
+
+            if (packageProducts.Count == 0)
             {
                 return NotFound();
             }
 
-            return packageContent;
+            return packageProducts;
         }
 
-        // PUT: api/PackageContents/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPackageContent(int id, PackageContent packageContent)
+        [HttpPost("{packageId}/content")]
+        public async Task<ActionResult<PackageContent>> PostPackageContent([FromHeader(Name = "Authorization")] string authorization, PackageContent packageContent)
         {
-            if (id != packageContent.Id)
-            {
-                return BadRequest();
-            }
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | EDIT_PACKAGES);
 
-            _context.Entry(packageContent).State = EntityState.Modified;
+            (JCST userToken, string email, AccessToken access) = result.Value;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PackageContentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (userToken == null) return result.Result;
 
-            return NoContent();
-        }
-
-        // POST: api/PackageContents
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<PackageContent>> PostPackageContent(PackageContent packageContent)
-        {
             _context.PackageContent.Add(packageContent);
             await _context.SaveChangesAsync();
 
@@ -85,10 +70,16 @@ namespace ShopAPI.Controllers
         }
 
         // DELETE: api/PackageContents/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePackageContent(int id)
+        [HttpDelete("{packageId}/content/{productId}")]
+        public async Task<IActionResult> DeletePackageContent([FromHeader(Name = "Authorization")] string authorization,int packageId, int productId)
         {
-            var packageContent = await _context.PackageContent.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | EDIT_PACKAGES);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var packageContent = _context.PackageContent.Where(c => c.PackageId == packageId && c.ProductId == productId).FirstOrDefault();
             if (packageContent == null)
             {
                 return NotFound();

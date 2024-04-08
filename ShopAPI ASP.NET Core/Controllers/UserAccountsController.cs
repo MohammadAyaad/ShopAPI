@@ -18,6 +18,7 @@ using ShopAPI.Model.TokenComponents;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using ShopAPI.Model.TokenId;
+using ShopAPI.Authorization;
 using ShopAPI.Model.Moderation;
 using System.Net;
 using System.Security.Cryptography;

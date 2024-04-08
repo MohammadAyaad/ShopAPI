@@ -7,10 +7,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopAPI.Data;
 using ShopAPI.Model.Products;
+using ShopAPI.Authorization;
+using static ShopAPI.Model.Moderation.Permissions;
+using static ShopAPI.Model.Moderation.UserRoles;
+using System.Net;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using JsonTokens.ComponentBasedTokens.ComponentSet;
+using ShopAPI.Model.TokenComponents;
 
 namespace ShopAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
     public class ProductRatingsController : ControllerBase
     {
@@ -21,18 +28,18 @@ namespace ShopAPI.Controllers
             _context = context;
         }
 
-        // GET: api/ProductRatings
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductRating>>> GetProductRatings()
-        {
-            return await _context.ProductRatings.ToListAsync();
-        }
 
         // GET: api/ProductRatings/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ProductRating>> GetProductRating(Guid id)
+        [HttpGet("{id}/ratings")]
+        public async Task<ActionResult<IEnumerable<ProductRating>>> GetProductRatings([FromHeader(Name = "Authorization")] string authorization, int id)
         {
-            var productRating = await _context.ProductRatings.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS);
+
+            (JCST userToken, string email,AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var productRating = _context.ProductRatings.Where(r => r.ProductId == id).ToList();
 
             if (productRating == null)
             {
@@ -42,42 +49,20 @@ namespace ShopAPI.Controllers
             return productRating;
         }
 
-        // PUT: api/ProductRatings/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProductRating(Guid id, ProductRating productRating)
-        {
-            if (id != productRating.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(productRating).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductRatingExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
 
         // POST: api/ProductRatings
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ProductRating>> PostProductRating(ProductRating productRating)
+        [HttpPost("{productId}/rate")]
+        public async Task<ActionResult<ProductRating>> PostProductRating([FromHeader(Name = "Authorization")] string authorization,int productId, ProductRating productRating)
         {
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS | REVIEW_PRODUCTS);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            if (productRating.ProductId != productId) return BadRequest();
+
             _context.ProductRatings.Add(productRating);
             await _context.SaveChangesAsync();
 
@@ -85,10 +70,16 @@ namespace ShopAPI.Controllers
         }
 
         // DELETE: api/ProductRatings/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProductRating(Guid id)
+        [HttpDelete("{productId}/rating")]
+        public async Task<IActionResult> DeleteProductRating([FromHeader(Name = "Authorization")] string authorization, int productId)
         {
-            var productRating = await _context.ProductRatings.FindAsync(id);
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS | REVIEW_PRODUCTS);
+
+            (JCST userToken, string email, AccessToken access) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            var productRating = _context.ProductRatings.Where(r => r.ProductId == productId && r.RaterEmail == email).First();
             if (productRating == null)
             {
                 return NotFound();
