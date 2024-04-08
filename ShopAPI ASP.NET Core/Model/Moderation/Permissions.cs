@@ -1,4 +1,4 @@
-﻿namespace ShopAPI_ASP.NET_Core.Model.Moderation
+﻿namespace ShopAPI.Model.Moderation
 {
     public enum Permissions : uint
     {

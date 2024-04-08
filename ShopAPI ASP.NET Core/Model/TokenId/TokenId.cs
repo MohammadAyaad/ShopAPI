@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.DataProtection;
 
 
-namespace ShopAPI_ASP.NET_Core.Model.TokenId
+namespace ShopAPI.Model.TokenId
 {
     public class TokenId : IIdentifiableTokenProcessorLayer<string>
     {

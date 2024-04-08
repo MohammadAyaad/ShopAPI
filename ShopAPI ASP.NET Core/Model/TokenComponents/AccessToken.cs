@@ -1,6 +1,6 @@
-﻿using ShopAPI.Authorization.Permissions_Roles;
+﻿using ShopAPI.Model.Moderation;
 
-namespace ShopAPI_ASP.NET_Core.Model.TokenComponents
+namespace ShopAPI.Model.TokenComponents
 {
     public class AccessToken
     {

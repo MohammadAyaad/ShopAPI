@@ -8,7 +8,7 @@ using ShopAPI.Data;
 
 #nullable disable
 
-namespace ShopAPI_ASP.NET_Core.Migrations
+namespace ShopAPI.Migrations
 {
     [DbContext(typeof(ShopDBContext))]
     [Migration("20240406112751_InitialMigration")]

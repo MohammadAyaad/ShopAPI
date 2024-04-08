@@ -14,15 +14,16 @@ using ShopAPI.Model.Users;
 using JsonTokens.ComponentBasedTokens.ComponentSet;
 using JsonTokens.ProcessingLayers;
 using JsonTokens.Components;
-using ShopAPI_ASP.NET_Core.Model.TokenComponents;
+using ShopAPI.Model.TokenComponents;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using ShopAPI_ASP.NET_Core.Model.TokenId;
-using ShopAPI.Authorization.Permissions_Roles;
+using ShopAPI.Model.TokenId;
+using ShopAPI.Model.Moderation;
 using System.Net;
+using System.Security.Cryptography;
 
 
-namespace ShopAPI_ASP.NET_Core.Controllers
+namespace ShopAPI.Controllers
 {
     [Route("api/user")]
     [ApiController]
@@ -38,7 +39,7 @@ namespace ShopAPI_ASP.NET_Core.Controllers
             _context = context;
             tokenIdPL = new TokenId();
             Stack<ITokenProcessorLayer> layers = new Stack<ITokenProcessorLayer>();
-            layers.Push(new HS256TokenProtectionLayer());
+            //layers.Push(new HS256TokenProtectionLayer());
             layers.Push(tokenIdPL);
             jsonTokenProcessor = new JsonTokenProcessor(layers);
         }
@@ -55,7 +56,9 @@ namespace ShopAPI_ASP.NET_Core.Controllers
             }
             else
             {
-                _context.UserAccounts.Add(userAccount);
+                UserAccount account = new UserAccount(userAccount);
+                account.SetRole(UserRoles.PERMISSIONS_DefaultUserAccount);
+                _context.UserAccounts.Add(account);
                 _context.SaveChanges();
                 return Created();
             }
@@ -86,12 +89,12 @@ namespace ShopAPI_ASP.NET_Core.Controllers
 
             this.tokenIdPL.setId(email);
 
-            var jcst = new JCST();
+            var jcst = new JCST(RandomNumberGenerator.GetBytes(32));
 
             AccessToken accessToken = new AccessToken()
             {
                 Email = email,
-                Permissions = account.Role
+                Permissions = account.GetRole()
             };
 
             jcst.AddComponent(accessToken);
@@ -113,16 +116,17 @@ namespace ShopAPI_ASP.NET_Core.Controllers
 
             JObject r = new JObject();
             r.Add("token", token);
-            return Ok(r);
+            return Ok(r.ToString());
         }
 
         [HttpGet()]
         public async Task<ActionResult<UserAccount>> GetUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
+            var result = getTokenFromAuthorization(authorization);
 
-            (JCST userToken,string email) = getTokenFromAuthorization(authorization).Value;
+            (JCST userToken,string email) = result.Value;
 
-            if (userToken == null) return Unauthorized();
+            if (userToken == null) return result.Result;
 
             if (!UserAccountExists(email)) return NotFound();
 
@@ -145,13 +149,15 @@ namespace ShopAPI_ASP.NET_Core.Controllers
         [HttpPut()]
         public async Task<IActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccount userAccount)
         {
-            (JCST token, string email) = getTokenFromAuthorization(authorization).Value;
+            var result = getTokenFromAuthorization(authorization);
 
-            if (token == null) return Unauthorized();
+            (JCST userToken, string email) = result.Value;
+
+            if (userToken == null) return result.Result;
 
             if (!UserAccountExists(email)) return NotFound();
 
-            AccessToken access = token.GetComponent<AccessToken>();
+            AccessToken access = userToken.GetComponent<AccessToken>();
 
             if (!access.Permissions.HasFlag(Permissions.MANAGE_ACCOUNT)) return StatusCode(StatusCodes.Status403Forbidden);
 
@@ -159,7 +165,7 @@ namespace ShopAPI_ASP.NET_Core.Controllers
 
             if (account == null) return NotFound();
 
-            if (userAccount.Role != default && access.Permissions.HasFlag(Permissions.EDIT_ROLES)) account.SetRole(userAccount.Role);
+            if (userAccount.GetRole() != default && access.Permissions.HasFlag(Permissions.EDIT_ROLES)) account.SetRole(userAccount.GetRole());
 
             if (userAccount.UserName != default && account.UserName != userAccount.UserName) account.UserName = userAccount.UserName;
             if (userAccount.FirstName != default && account.FirstName != userAccount.FirstName) account.FirstName = userAccount.FirstName;
@@ -189,9 +195,11 @@ namespace ShopAPI_ASP.NET_Core.Controllers
         [HttpDelete()]
         public async Task<IActionResult> DeleteUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
-            (JCST token, string email) = getTokenFromAuthorization(authorization).Value;
+            var result = getTokenFromAuthorization(authorization);
 
-            if (token == null) return Unauthorized();
+            (JCST userToken,string email) = result.Value;
+
+            if (userToken == null) return result.Result;
 
             if (!UserAccountExists(email)) return NotFound();
 

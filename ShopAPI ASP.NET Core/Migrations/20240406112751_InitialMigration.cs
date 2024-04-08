@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ShopAPI_ASP.NET_Core.Migrations
+namespace ShopAPI.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration

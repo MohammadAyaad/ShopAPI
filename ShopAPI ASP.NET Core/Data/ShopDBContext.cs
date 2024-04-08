@@ -7,7 +7,7 @@ using System.Reflection.Metadata;
 using ShopAPI.Model.Packages;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using ShopAPI_ASP.NET_Core.Model.Users;
+using ShopAPI.Model.Users;
 
 namespace ShopAPI.Data
 {

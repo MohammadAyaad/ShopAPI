@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ShopAPI.Data;
 using ShopAPI.Model.Products;
 
-namespace ShopAPI_ASP.NET_Core.Controllers
+namespace ShopAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

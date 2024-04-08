@@ -1,16 +1,16 @@
-﻿namespace ShopAPI_ASP.NET_Core.Model.Moderation
+﻿namespace ShopAPI.Model.Moderation
 {
     public static class UserRoles
     {
 
 
         public const Permissions PERMISSIONS_AnonymousUser =
-            
+
             Permissions.READ_PRODUCTS |
             Permissions.READ_PACKAGES
             ;
         public const Permissions PERMISSIONS_DefaultUserAccount =
-            
+
             Permissions.READ_ACCOUNT |
             Permissions.READ_PRODUCTS |
             Permissions.ORDER_PRODUCTS |
@@ -36,3 +36,4 @@
             { "owner",PERMISSIONS_Owner }
         };
     }
+}

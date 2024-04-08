@@ -28,7 +28,7 @@
                 @Html.DisplayNameFor(model => model.LastName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Role)
+                @Html.DisplayNameFor(model => model.GetRole())
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CreatedAt)
@@ -58,7 +58,7 @@
                 @Html.DisplayFor(modelItem => item.LastName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Role)
+                    @Html.DisplayFor(modelItem => item.GetRole())
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)
