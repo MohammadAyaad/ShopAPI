@@ -41,12 +41,10 @@ namespace ShopAPI.Model.Users
         public Guid GetId() => Id;
         public string Email { get; set; }
         public string UserName { get; set; }
-        private string Password { get; set; }
-        public string GetPassword() => Password;
-        public string SetPassword(string password) => this.Password = password;
+        public string Password { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }  
-        private Permissions Role { get; set; }
+        public Permissions Role { get; set; }
         public void SetRole(Permissions role) => this.Role = role;
         public Permissions GetRole() => this.Role;
         public long CreatedAt { get; }

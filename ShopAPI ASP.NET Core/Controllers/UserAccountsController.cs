@@ -85,7 +85,7 @@ namespace ShopAPI.Controllers
 
             if (account == null) return NotFound();
 
-            if (account.GetPassword() != password) return Unauthorized();
+            if (account.Password != password) return Unauthorized();
 
             var access_token = _context.JwtAccessTables.Where(t => t.Email == email);
 
@@ -121,7 +121,7 @@ namespace ShopAPI.Controllers
             _context.SaveChanges();
 
             JObject r = new JObject();
-            r.Add("token", token);
+            r.Add("token", $"Bearer {token}");
             return Ok(r.ToString());
         }
 
@@ -208,6 +208,12 @@ namespace ShopAPI.Controllers
             {
                 return NotFound();
             }
+
+            var access_token = _context.JwtAccessTables.Where(t => t.Email == email);
+
+            if (access_token.Count() != 0)
+                foreach (var a in access_token)
+                    _context.JwtAccessTables.Remove(a);
 
             _context.UserAccounts.Remove(userAccount);
             await _context.SaveChangesAsync();
