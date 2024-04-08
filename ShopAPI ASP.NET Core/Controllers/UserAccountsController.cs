@@ -46,17 +46,17 @@ namespace ShopAPI.Controllers
         // POST: api/UserAccounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        public async Task<ActionResult<UserAccount>> CreateUserAccount(UserAccount userAccount)
+        public async Task<ActionResult<UserAccountDTO>> CreateUserAccount(UserAccountDTO userAccountDTO)
         {
-            new MailAddress(userAccount.Email); //check if its a valid email address
+            new MailAddress(userAccountDTO.Email); //check if its a valid email address
 
-            if (UserAccountExists(userAccount.Email))
+            if (UserAccountExists(userAccountDTO.Email))
             {
                 return BadRequest("Account already exists");
             }
             else
             {
-                UserAccount account = new UserAccount(userAccount);
+                UserAccount account = userAccountDTO.ToNewUserAccount();
                 account.SetRole(UserRoles.PERMISSIONS_DefaultUserAccount);
                 _context.UserAccounts.Add(account);
                 _context.SaveChanges();
@@ -85,8 +85,14 @@ namespace ShopAPI.Controllers
 
             if (account == null) return NotFound();
 
-            if (account.Password != password) return Unauthorized();
+            if (account.GetPassword() != password) return Unauthorized();
 
+            var access_token = _context.JwtAccessTables.Where(t => t.Email == email);
+
+            if (access_token.Count() != 0)
+                foreach(var a in access_token)
+                    _context.JwtAccessTables.Remove(a);
+            
             this.tokenIdPL.setId(email);
 
             var jcst = new JCST(RandomNumberGenerator.GetBytes(32));
@@ -120,7 +126,7 @@ namespace ShopAPI.Controllers
         }
 
         [HttpGet()]
-        public async Task<ActionResult<UserAccount>> GetUserAccount([FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult<UserAccountDTO>> GetUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
             var result = getTokenFromAuthorization(authorization);
 
@@ -143,11 +149,11 @@ namespace ShopAPI.Controllers
                 return NotFound();
             }
 
-            return userAccount;
+            return Ok(userAccount.GetDTO());
         }
 
         [HttpPut()]
-        public async Task<IActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccount userAccount)
+        public async Task<IActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccountDTO userAccountDTO)
         {
             var result = getTokenFromAuthorization(authorization);
 
@@ -165,13 +171,7 @@ namespace ShopAPI.Controllers
 
             if (account == null) return NotFound();
 
-            if (userAccount.GetRole() != default && access.Permissions.HasFlag(Permissions.EDIT_ROLES)) account.SetRole(userAccount.GetRole());
-
-            if (userAccount.UserName != default && account.UserName != userAccount.UserName) account.UserName = userAccount.UserName;
-            if (userAccount.FirstName != default && account.FirstName != userAccount.FirstName) account.FirstName = userAccount.FirstName;
-            if (userAccount.Email != default && account.Email != userAccount.Email) account.Email = userAccount.Email;
-            if (userAccount.Password != default && account.Password != userAccount.Password) account.Password = userAccount.Password;
-            if (userAccount.DateOfBirth != default && account.DateOfBirth != userAccount.DateOfBirth) account.DateOfBirth = userAccount.DateOfBirth;
+            account.ModifyByDTO(userAccountDTO);
 
             try
             {
@@ -237,7 +237,7 @@ namespace ShopAPI.Controllers
 
             LifeTime lt = userToken.GetComponent<LifeTime>();
 
-            if (!lt.IsValid)
+            if (!lt.IsValid())
             {
                 _context.JwtAccessTables.Remove(secret);
                 return Unauthorized();
