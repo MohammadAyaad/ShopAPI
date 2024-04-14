@@ -47,7 +47,7 @@ namespace ShopAPI.Controllers
         // POST: api/UserAccounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        public async Task<ActionResult<UserAccountDTO>> CreateUserAccount(UserAccountDTO userAccountDTO)
+        public async Task<ActionResult<UserAccountDTO>> CreateUserAccount(UserAccountDTO userAccountDTO,string pw)
         {
             new MailAddress(userAccountDTO.Email); //check if its a valid email address
 
@@ -59,13 +59,14 @@ namespace ShopAPI.Controllers
             {
                 UserAccount account = userAccountDTO.ToNewUserAccount();
                 account.SetRole(UserRoles.PERMISSIONS_DefaultUserAccount);
+                account.Password = pw;
                 _context.UserAccounts.Add(account);
                 _context.SaveChanges();
                 return Created();
             }
         }
         [HttpPost("login")]
-        public async Task<ActionResult> Login([FromHeader(Name = "WWW-Authenticate")] string basicAuth)
+        public async Task<ActionResult<JObject>> Login([FromHeader(Name = "WWW-Authenticate")] string basicAuth)
         {
             string[] basic_parts = basicAuth.Split(" ");
 
@@ -154,7 +155,7 @@ namespace ShopAPI.Controllers
         }
 
         [HttpPut()]
-        public async Task<IActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccountDTO userAccountDTO)
+        public async Task<ActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccountDTO userAccountDTO)
         {
             var result = getTokenFromAuthorization(authorization);
 
@@ -171,6 +172,11 @@ namespace ShopAPI.Controllers
             var account = _context.UserAccounts.FirstOrDefault(e => e.Email == email);
 
             if (account == null) return NotFound();
+
+            if(account.Email != userAccountDTO.Email)
+            {
+                _context.JwtAccessTables.RemoveRange(_context.JwtAccessTables.Where(u => u.Email == email));
+            }
 
             account.ModifyByDTO(userAccountDTO);
 
@@ -192,9 +198,20 @@ namespace ShopAPI.Controllers
 
             return NoContent();
         }
+        [HttpPost("")]
+        public async Task<ActionResult> LogoutUserAccount([FromHeader(Name = "Authorization")] string authorization)
+        {
+            var result = getTokenFromAuthorization(authorization);
 
+            (JCST userToken, string email) = result.Value;
+
+            if (userToken == null) return result.Result;
+
+            _context.JwtAccessTables.RemoveRange(_context.JwtAccessTables.Where(u => u.Email == email));
+            return Ok();
+        }
         [HttpDelete()]
-        public async Task<IActionResult> DeleteUserAccount([FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult> DeleteUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
             var result = getTokenFromAuthorization(authorization);
 
