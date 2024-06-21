@@ -26,9 +26,9 @@ namespace ShopAPI.Authorization
             jsonTokenProcessor = new JsonTokenProcessor(layers);
         }
 
-        public static ActionResult<(JCST token, string email,AccessToken accessToken)> AuthorizeAccess(string AuthorizationHeader,ShopDBContext context,Permissions RequiredPermissions = Permissions.RESOURCE_OPEN)
+        public static ActionResult<(JCST token, string email, AccessToken accessToken)> AuthorizeAccess(string AuthorizationHeader, ShopDBContext context, Permissions RequiredPermissions = Permissions.RESOURCE_OPEN)
         {
-            var result = getTokenFromAuthorization(AuthorizationHeader, jsonTokenProcessor, tokenIdProcessorLayer,context);
+            var result = getTokenFromAuthorization(AuthorizationHeader, jsonTokenProcessor, tokenIdProcessorLayer, context);
 
             (JCST userToken, string email) = result.Value;
 
@@ -45,7 +45,7 @@ namespace ShopAPI.Authorization
             return (userToken, email, access);
         }
 
-        private static ActionResult<(JCST token, string email)> getTokenFromAuthorization(string authorization,JsonTokenProcessor jsonTokenProcessor,TokenId tokenIdPL,ShopDBContext _context)
+        private static ActionResult<(JCST token, string email)> getTokenFromAuthorization(string authorization, JsonTokenProcessor jsonTokenProcessor, TokenId tokenIdPL, ShopDBContext _context)
         {
             if (string.IsNullOrEmpty(authorization)) return new UnauthorizedResult();
 
@@ -81,5 +81,5 @@ namespace ShopAPI.Authorization
         }
     }
 
-    
+
 }

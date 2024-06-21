@@ -11,13 +11,13 @@ namespace ShopAPI.Model.TokenId
         private string email;
         (string token, string secret) ITokenProcessorLayer.FromString(string token, string secret)
         {
-            (string _token,this.email) = ParseToken(token);
+            (string _token, this.email) = ParseToken(token);
             return (_token, secret);
         }
 
         (string token, string secret) ITokenProcessorLayer.ToString(string input, string secret)
         {
-            return (MakeToken(input,this.email),secret);
+            return (MakeToken(input, this.email), secret);
         }
         string IIdentifiableTokenProcessorLayer<string>.GetId()
         {

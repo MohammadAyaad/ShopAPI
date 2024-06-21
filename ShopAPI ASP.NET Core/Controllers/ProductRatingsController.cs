@@ -35,7 +35,7 @@ namespace ShopAPI.Controllers
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS);
 
-            (JCST userToken, string email,AccessToken access) = result.Value;
+            (JCST userToken, string email, AccessToken access) = result.Value;
 
             if (userToken == null) return result.Result;
 
@@ -53,7 +53,7 @@ namespace ShopAPI.Controllers
         // POST: api/ProductRatings
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("{productId}/rate")]
-        public async Task<ActionResult<ProductRating>> PostProductRating([FromHeader(Name = "Authorization")] string authorization,int productId, ProductRating productRating)
+        public async Task<ActionResult<ProductRating>> PostProductRating([FromHeader(Name = "Authorization")] string authorization, int productId, ProductRating productRating)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS | REVIEW_PRODUCTS);
 

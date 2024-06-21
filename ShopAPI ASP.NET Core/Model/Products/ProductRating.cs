@@ -7,9 +7,9 @@
         public int ProductId { get; set; }
         public int VariantId { get; set; }
         public long RatedAt { get; set; }
-        public string Comment {  get; set; }
+        public string Comment { get; set; }
         public double Rating { get; set; }
-        public long UpVotes {  get; set; }
+        public long UpVotes { get; set; }
         public long DownVotes { get; set; }
         public double Score { get; set; }
 

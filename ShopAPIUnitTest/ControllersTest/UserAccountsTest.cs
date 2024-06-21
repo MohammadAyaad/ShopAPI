@@ -31,7 +31,7 @@ namespace ShopAPIUnitTest.ControllersTest
             UserAccountDTO _testUserAccountDTO = A.Fake<UserAccountDTO>();
             string password = GenerateRandomString(RandomNumberGenerator.GetInt32(1, 32));
             // Act
-            var result = await _controller.CreateUserAccount(_testUserAccountDTO,password);
+            var result = await _controller.CreateUserAccount(_testUserAccountDTO, password);
 
             // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
@@ -86,10 +86,10 @@ namespace ShopAPIUnitTest.ControllersTest
             UserAccountDTO newTestUserAccountDTO = A.Fake<UserAccountDTO>();
             var result0 = await _controller.PutUserAccount(token, newTestUserAccountDTO);
 
-            Assert.IsType(typeof(NoContentResult), result0.GetType());
+            Assert.IsType<NoContentResult>(result0.GetType());
 
             var result1 = await _controller.GetUserAccount(token);
-            Assert.IsType(typeof(OkObjectResult), result1.Result.GetType());
+            Assert.IsType<OkObjectResult>(result1.Result.GetType());
             Assert.Equal(newTestUserAccountDTO, result1.Value);
         }
         [Fact]
@@ -105,13 +105,13 @@ namespace ShopAPIUnitTest.ControllersTest
             Assert.IsType<OkResult>(_result.Result);
 
             var result = await _controller.DeleteUserAccount(token);
-            Assert.IsType(typeof(NoContentResult), result.GetType());
+            Assert.IsType<NoContentResult>(result.GetType());
 
             var login_result = await _controller.Login($"Basic {_testUserAccountDTO.Email}:{password}");
 
-            Assert.IsType(typeof(NotFoundResult), login_result.Result.GetType());
+            Assert.IsType<NotFoundResult>(login_result.Result.GetType());
 
-            Assert.IsType(typeof(NotFoundResult),(await _controller.GetUserAccount(token)));
+            Assert.IsType<NotFoundResult>((await _controller.GetUserAccount(token)));
         }
 
         static string GenerateRandomString(int length)

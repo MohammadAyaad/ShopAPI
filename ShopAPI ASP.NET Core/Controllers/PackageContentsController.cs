@@ -33,7 +33,7 @@ namespace ShopAPI.Controllers
 
         // GET: api/PackageContents/5
         [HttpGet("{packageId}/content")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetPackageContent([FromHeader(Name = "Authorization")] string authorization,int packageId)
+        public async Task<ActionResult<IEnumerable<Product>>> GetPackageContent([FromHeader(Name = "Authorization")] string authorization, int packageId)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES);
 
@@ -41,7 +41,7 @@ namespace ShopAPI.Controllers
 
             if (userToken == null) return result.Result;
 
-            var packageContents =  _context.PackageContent.Where(c => c.PackageId == packageId);
+            var packageContents = _context.PackageContent.Where(c => c.PackageId == packageId);
 
             var packageProducts = _context.Products.Where(p => packageContents.Any(c => c.ProductId == p.Id)).ToList();
 
@@ -71,7 +71,7 @@ namespace ShopAPI.Controllers
 
         // DELETE: api/PackageContents/5
         [HttpDelete("{packageId}/content/{productId}")]
-        public async Task<IActionResult> DeletePackageContent([FromHeader(Name = "Authorization")] string authorization,int packageId, int productId)
+        public async Task<IActionResult> DeletePackageContent([FromHeader(Name = "Authorization")] string authorization, int packageId, int productId)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | EDIT_PACKAGES);
 

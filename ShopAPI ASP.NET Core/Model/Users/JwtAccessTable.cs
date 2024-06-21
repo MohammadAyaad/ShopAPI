@@ -2,7 +2,8 @@
 {
     public class JwtAccessTable
     {
-        public JwtAccessTable() { 
+        public JwtAccessTable()
+        {
             Id = Guid.NewGuid();
         }
         public Guid Id { get; private set; }

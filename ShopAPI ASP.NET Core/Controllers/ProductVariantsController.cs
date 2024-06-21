@@ -82,7 +82,7 @@ namespace ShopAPI.Controllers
 
         // DELETE: api/ProductVariants/5
         [HttpDelete("{productId}/variants/delete/{variantId}")]
-        public async Task<IActionResult> DeleteProductVariant([FromHeader(Name = "Authorization")] string authorization,int productId, int variantId)
+        public async Task<IActionResult> DeleteProductVariant([FromHeader(Name = "Authorization")] string authorization, int productId, int variantId)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, EDIT_PRODUCTS);
 

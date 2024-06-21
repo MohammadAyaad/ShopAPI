@@ -43,7 +43,7 @@ namespace ShopAPI.Model.Users
         public string UserName { get; set; }
         public string Password { get; set; }
         public string FirstName { get; set; }
-        public string LastName { get; set; }  
+        public string LastName { get; set; }
         public Permissions Role { get; set; }
         public void SetRole(Permissions role) => this.Role = role;
         public Permissions GetRole() => this.Role;
@@ -78,6 +78,5 @@ namespace ShopAPI.Model.Users
             u.DateOfBirth = this.DateOfBirth;
             return u;
         }
-        
     }
 }

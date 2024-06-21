@@ -22,7 +22,7 @@ namespace ShopAPI.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ShopDBContext _context;
-        
+
 
         public ProductsController(ShopDBContext context)
         {
@@ -31,14 +31,14 @@ namespace ShopAPI.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromHeader(Name = "Authorization")] string authorization,[FromQuery(Name = "index")] uint index = 0, [FromQuery(Name = "count")] uint count = 20)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts([FromHeader(Name = "Authorization")] string authorization, [FromQuery(Name = "index")] uint index = 0, [FromQuery(Name = "count")] uint count = 20)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PRODUCTS);
 
-            (JCST userToken, string email,AccessToken access) = result.Value;
+            (JCST userToken, string email, AccessToken access) = result.Value;
 
             if (userToken == null) return result.Result;
-            
+
             if (count > 50) return BadRequest();
             return _context.Products.Skip((int)index).Take((int)count).ToList();
         }

@@ -51,12 +51,12 @@ namespace ShopAPI.Controllers
             return packageRating;
         }
 
-        
+
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("{packageId}/rate")]
-        public async Task<ActionResult<PackageRating>> PostPackageRating([FromHeader(Name = "Authorization")] string authorization,int packageId, PackageRating packageRating)
+        public async Task<ActionResult<PackageRating>> PostPackageRating([FromHeader(Name = "Authorization")] string authorization, int packageId, PackageRating packageRating)
         {
-            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | REVIEW_PACKAGES );
+            var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | REVIEW_PACKAGES);
 
             (JCST userToken, string email, AccessToken access) = result.Value;
 
@@ -72,7 +72,7 @@ namespace ShopAPI.Controllers
 
         // DELETE: api/ProductRatings/5
         [HttpDelete("{packageId}/rating")]
-        public async Task<IActionResult> DeletePackageRating([FromHeader(Name = "Authorization")] string authorization,int packageId)
+        public async Task<IActionResult> DeletePackageRating([FromHeader(Name = "Authorization")] string authorization, int packageId)
         {
             var result = AuthorizationService.AuthorizeAccess(authorization, _context, READ_PACKAGES | REVIEW_PACKAGES);
 

@@ -47,7 +47,7 @@ namespace ShopAPI.Controllers
         // POST: api/UserAccounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
-        public async Task<ActionResult<UserAccountDTO>> CreateUserAccount(UserAccountDTO userAccountDTO,string pw)
+        public async Task<ActionResult<UserAccountDTO>> CreateUserAccount(UserAccountDTO userAccountDTO, string pw)
         {
             new MailAddress(userAccountDTO.Email); //check if its a valid email address
 
@@ -75,8 +75,8 @@ namespace ShopAPI.Controllers
             if (basic_parts[0].Trim().ToLower() != "basic") return Unauthorized();
 
             string[] auth_parts = basic_parts[1].Trim().Split(":");
-            
-            if(auth_parts.Length != 2) return Unauthorized();
+
+            if (auth_parts.Length != 2) return Unauthorized();
 
             string email = auth_parts[0].Trim();
             string password = auth_parts[1].Trim();
@@ -92,9 +92,9 @@ namespace ShopAPI.Controllers
             var access_token = _context.JwtAccessTables.Where(t => t.Email == email);
 
             if (access_token.Count() != 0)
-                foreach(var a in access_token)
+                foreach (var a in access_token)
                     _context.JwtAccessTables.Remove(a);
-            
+
             this.tokenIdPL.setId(email);
 
             var jcst = new JCST(RandomNumberGenerator.GetBytes(32));
@@ -111,7 +111,7 @@ namespace ShopAPI.Controllers
 
             jcst.AddComponent(tokenLifeTime);
 
-            (string token,string secret) = jsonTokenProcessor.ToString(jcst);
+            (string token, string secret) = jsonTokenProcessor.ToString(jcst);
 
             _context.JwtAccessTables.Add(new Model.Users.JwtAccessTable()
             {
@@ -127,12 +127,12 @@ namespace ShopAPI.Controllers
             return Ok(r.ToString());
         }
 
-        [HttpGet()]
+        [HttpGet]
         public async Task<ActionResult<UserAccountDTO>> GetUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
             var result = getTokenFromAuthorization(authorization);
 
-            (JCST userToken,string email) = result.Value;
+            (JCST userToken, string email) = result.Value;
 
             if (userToken == null) return result.Result;
 
@@ -140,7 +140,7 @@ namespace ShopAPI.Controllers
 
             AccessToken access = userToken.GetComponent<AccessToken>();
 
-            if(access.Email != email) return Unauthorized();
+            if (access.Email != email) return Unauthorized();
 
             if (!access.Permissions.HasFlag(Permissions.READ_ACCOUNT)) return Unauthorized();
 
@@ -154,7 +154,7 @@ namespace ShopAPI.Controllers
             return Ok(userAccount.GetDTO());
         }
 
-        [HttpPut()]
+        [HttpPut]
         public async Task<ActionResult> PutUserAccount([FromHeader(Name = "Authorization")] string authorization, UserAccountDTO userAccountDTO)
         {
             var result = getTokenFromAuthorization(authorization);
@@ -173,7 +173,7 @@ namespace ShopAPI.Controllers
 
             if (account == null) return NotFound();
 
-            if(account.Email != userAccountDTO.Email)
+            if (account.Email != userAccountDTO.Email)
             {
                 _context.JwtAccessTables.RemoveRange(_context.JwtAccessTables.Where(u => u.Email == email));
             }
@@ -215,7 +215,7 @@ namespace ShopAPI.Controllers
         {
             var result = getTokenFromAuthorization(authorization);
 
-            (JCST userToken,string email) = result.Value;
+            (JCST userToken, string email) = result.Value;
 
             if (userToken == null) return result.Result;
 
