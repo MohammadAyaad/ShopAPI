@@ -7,12 +7,28 @@ namespace ShopAPI.Model.Users
 {
     public class UserAccount
     {
+        public Guid Id { get; set; }
+        public Guid GetId() => Id;
+        public string Email { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public long CreatedAt { get; }
+
+        public Permissions Role { get; set; }
+        public DateOnly DateOfBirth { get; set; }
+
+        public Permissions GetRole() => this.Role;
+        public void SetRole(Permissions role) => this.Role = role;
+
         public UserAccount()
         {
             this.Id = Guid.NewGuid();
             this.CreatedAt = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             this.SetRole(UserRoles.PERMISSIONS_DefaultUserAccount);
         }
+
         public UserAccount(UserAccount accountPublicData)
         {
             this.Id = Guid.NewGuid();
@@ -25,6 +41,7 @@ namespace ShopAPI.Model.Users
             this.LastName = accountPublicData.LastName;
             this.DateOfBirth = accountPublicData.DateOfBirth;
         }
+
         public UserAccountDTO GetDTO()
         {
             return new UserAccountDTO()
@@ -37,18 +54,7 @@ namespace ShopAPI.Model.Users
                 DateOfBirth = this.DateOfBirth,
             };
         }
-        public Guid Id { get; set; }
-        public Guid GetId() => Id;
-        public string Email { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public Permissions Role { get; set; }
-        public void SetRole(Permissions role) => this.Role = role;
-        public Permissions GetRole() => this.Role;
-        public long CreatedAt { get; }
-        public DateOnly DateOfBirth { get; set; }
+
         public void ModifyByDTO(UserAccountDTO userAccountDTO)
         {
             this.Email = userAccountDTO.Email;
