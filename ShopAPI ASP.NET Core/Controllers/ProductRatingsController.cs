@@ -28,7 +28,6 @@ namespace ShopAPI.Controllers
             _context = context;
         }
 
-
         // GET: api/ProductRatings/5
         [HttpGet("{id}/ratings")]
         public async Task<ActionResult<IEnumerable<ProductRating>>> GetProductRatings([FromHeader(Name = "Authorization")] string authorization, int id)
@@ -48,7 +47,6 @@ namespace ShopAPI.Controllers
 
             return productRating;
         }
-
 
         // POST: api/ProductRatings
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

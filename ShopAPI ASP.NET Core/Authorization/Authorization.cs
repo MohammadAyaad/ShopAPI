@@ -75,6 +75,7 @@ namespace ShopAPI.Authorization
 
             return (userToken, email);
         }
+
         private static bool UserAccountExists(string email, ShopDBContext _context)
         {
             return _context.UserAccounts.Any(e => e.Email == email);

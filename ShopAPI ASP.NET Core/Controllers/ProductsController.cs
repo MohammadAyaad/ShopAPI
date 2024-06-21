@@ -23,7 +23,6 @@ namespace ShopAPI.Controllers
     {
         private readonly ShopDBContext _context;
 
-
         public ProductsController(ShopDBContext context)
         {
             _context = context;

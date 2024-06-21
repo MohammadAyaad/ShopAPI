@@ -51,7 +51,6 @@ namespace ShopAPI.Controllers
             return packageRating;
         }
 
-
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("{packageId}/rate")]
         public async Task<ActionResult<PackageRating>> PostPackageRating([FromHeader(Name = "Authorization")] string authorization, int packageId, PackageRating packageRating)
@@ -91,8 +90,6 @@ namespace ShopAPI.Controllers
 
             return NoContent();
         }
-
-
 
         private bool PackageRatingExists(Guid id)
         {

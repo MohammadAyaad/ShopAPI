@@ -24,6 +24,7 @@ namespace ShopAPIUnitTest.ControllersTest
             _context = A.Fake<ShopDBContext>();
             _controller = new UserAccountsController(_context);
         }
+
         [Fact]
         public async Task CreateUserAccount_ReturnsCreatedStatus()
         {
@@ -92,6 +93,7 @@ namespace ShopAPIUnitTest.ControllersTest
             Assert.IsType<OkObjectResult>(result1.Result.GetType());
             Assert.Equal(newTestUserAccountDTO, result1.Value);
         }
+
         [Fact]
         public async Task DeleteUser_Clears_The_System()
         {

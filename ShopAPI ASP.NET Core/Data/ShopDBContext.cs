@@ -39,6 +39,7 @@ namespace ShopAPI.Data
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<JObject>(v));
         }
+
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<ProductRating> ProductRatings { get; set; }
@@ -47,6 +48,5 @@ namespace ShopAPI.Data
         public DbSet<PackageContent> PackageContent { get; set; }
         public DbSet<PackageRating> PackageRatings { get; set; }
         public DbSet<JwtAccessTable> JwtAccessTables { get; set; }
-
     }
 }

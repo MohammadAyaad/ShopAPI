@@ -44,6 +44,7 @@ namespace ShopAPI.Controllers
             layers.Push(tokenIdPL);
             jsonTokenProcessor = new JsonTokenProcessor(layers);
         }
+
         // POST: api/UserAccounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("create")]
@@ -65,6 +66,7 @@ namespace ShopAPI.Controllers
                 return Created();
             }
         }
+
         [HttpPost("login")]
         public async Task<ActionResult<JObject>> Login([FromHeader(Name = "WWW-Authenticate")] string basicAuth)
         {
@@ -198,7 +200,8 @@ namespace ShopAPI.Controllers
 
             return NoContent();
         }
-        [HttpPost("")]
+
+        [HttpPost]
         public async Task<ActionResult> LogoutUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
             var result = getTokenFromAuthorization(authorization);
@@ -210,7 +213,8 @@ namespace ShopAPI.Controllers
             _context.JwtAccessTables.RemoveRange(_context.JwtAccessTables.Where(u => u.Email == email));
             return Ok();
         }
-        [HttpDelete()]
+
+        [HttpDelete]
         public async Task<ActionResult> DeleteUserAccount([FromHeader(Name = "Authorization")] string authorization)
         {
             var result = getTokenFromAuthorization(authorization);
@@ -238,6 +242,7 @@ namespace ShopAPI.Controllers
 
             return NoContent();
         }
+
         private ActionResult<(JCST token, string email)> getTokenFromAuthorization(string authorization)
         {
             if (string.IsNullOrEmpty(authorization)) return Unauthorized();
@@ -269,6 +274,7 @@ namespace ShopAPI.Controllers
 
             return (userToken, email);
         }
+
         private bool UserAccountExists(string email)
         {
             return _context.UserAccounts.Any(e => e.Email == email);
