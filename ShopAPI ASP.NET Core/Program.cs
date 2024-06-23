@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using ShopAPI.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 

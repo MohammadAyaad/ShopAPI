@@ -1,14 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShopAPI.Data;
-using JsonTokens.ComponentBasedTokens.ComponentSet;
 using ShopAPI.Model.Moderation;
 using ShopAPI.Model.TokenComponents;
-using JsonTokens.Components;
-using JsonTokens.ProcessingLayers;
-using Microsoft.EntityFrameworkCore;
 using ShopAPI.Model.TokenId;
-using System.Net;
 
 namespace ShopAPI.Authorization
 {
@@ -26,26 +20,40 @@ namespace ShopAPI.Authorization
             jsonTokenProcessor = new JsonTokenProcessor(layers);
         }
 
-        public static ActionResult<(JCST token, string email, AccessToken accessToken)> AuthorizeAccess(string AuthorizationHeader, ShopDBContext context, Permissions RequiredPermissions = Permissions.RESOURCE_OPEN)
+        public static ActionResult<(JCST token, string email, AccessToken accessToken)> AuthorizeAccess(
+            string AuthorizationHeader,
+            ShopDBContext context,
+                AuthorizationHeader,
+                jsonTokenProcessor,
+                tokenIdProcessorLayer,
+               
+            Permissions RequiredPermissions = Permissions.RESOURCE_OPEN)
         {
             var result = getTokenFromAuthorization(AuthorizationHeader, jsonTokenProcessor, tokenIdProcessorLayer, context);
 
             (JCST userToken, string email) = result.Value;
 
-            if (userToken == null) return result.Result;
+            if (userToken != null)
+            {
+                if (!UserAccountExists(email, context)) return new NotFoundResult();
 
-            if (!UserAccountExists(email, context)) return new NotFoundResult();
+                AccessToken access = userToken.GetComponent<AccessToken>();
 
-            AccessToken access = userToken.GetComponent<AccessToken>();
+                if (access.Email != email) return new UnauthorizedResult();
 
-            if (access.Email != email) return new UnauthorizedResult();
+                if (!((access.Permissions & RequiredPermissions) == RequiredPermissions)) return new UnauthorizedResult();
 
-            if (!((access.Permissions & RequiredPermissions) == RequiredPermissions)) return new UnauthorizedResult();
+                return (userToken, email, access);
+            }
 
-            return (userToken, email, access);
+            return result.Result;
         }
 
-        private static ActionResult<(JCST token, string email)> getTokenFromAuthorization(string authorization, JsonTokenProcessor jsonTokenProcessor, TokenId tokenIdPL, ShopDBContext _context)
+        private static ActionResult<(JCST token, string email)> getTokenFromAuthorization(
+            string authorization,
+            JsonTokenProcessor jsonTokenProcessor,
+            TokenId tokenIdPL,
+            ShopDBContext _context)
         {
             if (string.IsNullOrEmpty(authorization)) return new UnauthorizedResult();
 
