@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using NuGet.Common;
 using ShopAPI.Controllers;
 using ShopAPI.Data;
-using ShopAPI.Model.Users;
+using ShopAPI.Model.Authentication;
 
 namespace ShopAPIUnitTest.ControllersTest
 {

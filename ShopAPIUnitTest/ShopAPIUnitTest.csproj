@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ShopAPI ASP.NET Core\ShopAPI ASP.NET Core.csproj" />
+    <ProjectReference Include="..\ShopAPI\ShopAPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
